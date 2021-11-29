@@ -41,6 +41,25 @@ app.get("/api/getusers", (req, res) => {
   );
 });
 
+app.get("/api/getroles", (req, res) => {
+  db.query(
+    `SELECT roles.id, roles.name as input, ` +
+      `JSON_ARRAYAGG(app.name) AS permissionName` +
+      " FROM t_roles as roles " +
+      "INNER JOIN t_roles_app_link as link ON link.id_role = roles.id " +
+      "INNER JOIN t_app as app ON app.id = link.id_app " +
+      "GROUP BY roles.id ORDER BY roles.id",
+    [],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+
+      res.send(result);
+    }
+  );
+});
+
 // Route to get one post
 app.get("/api/login/:id~:psw", (req, res) => {
   const id = req.params.id;
@@ -64,6 +83,7 @@ app.get("/", (req, res) => {
   var text = "Backend Timesheet: <p>/api/getdata</p>";
   text += "<p>/api/login/:id~:psw</p>";
   text += "<p>/api/getusers</p>";
+  text += "<p>/api/getroles</p>";
   res.send(text);
 });
 
