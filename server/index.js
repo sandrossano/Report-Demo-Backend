@@ -22,6 +22,18 @@ app.get("/api/getdata", (req, res) => {
   });
 });
 
+const queryroles = "SELECT name" + " FROM t_roles";
+// Route to get all posts
+app.get("/api/getroleslist", (req, res) => {
+  const id = req.params.id;
+  db.query(queryroles, id, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    res.send(result);
+  });
+});
+
 app.get("/api/getusers", (req, res) => {
   db.query(
     `SELECT user.id, user.email as input, user.password as psw, ` +
@@ -203,8 +215,10 @@ app.get("/", (req, res) => {
   text += "<p>/api/login/:id~:psw</p>";
   text += "<p>/api/getusers</p>";
   text += "<p>/api/getroles</p>";
+  text += "<p>/api/getroleslist</p>";
   text += "<p>/api/deleteuser/:id</p>";
   text += '<p>/api/createuser/:id~:email~:psw~["Ruolo1","Ruolo3"]</p>';
+  text += '<p>/api/edituser/:id~:email~:psw~["Ruolo1","Ruolo3"]</p>';
   //text += '<p>/api/createlink_user/:id~["Ruolo1","Ruolo3"]';
   res.send(text);
 });
