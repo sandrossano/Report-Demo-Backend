@@ -285,7 +285,7 @@ app.get("/api/editrole/:id~:email~:arrayroles", (req, res) => {
                 }
                 for (var i = 0; i < array.length; i++) {
                   db.query(
-                    "INSERT INTO t_roles_app_link (`id_role, `id_app`)" +
+                    "INSERT INTO t_roles_app_link (`id_role`, `id_app`)" +
                       " VALUES (?, (SELECT id FROM t_app WHERE name = ? ) )",
                     [id, array[i]],
                     (err, result) => {
