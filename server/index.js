@@ -112,7 +112,7 @@ app.get("/api/createuser/:id~:email~:psw", (req, res) => {
 
 app.get("/api/createlink_user/:id~:arrayroles", (req, res) => {
   const id = req.params.id;
-  var array = req.params.arrayroles.split('","');
+  var array = req.params.arrayroles.split(",");
   for (var j = 0; j < array.length; j++) {
     array[j] = array[j].replace(/['"]+/g, "").trim();
     array[j] = array[j].replace(/['[]+/g, "").trim();
