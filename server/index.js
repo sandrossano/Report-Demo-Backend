@@ -34,6 +34,18 @@ app.get("/api/getroleslist", (req, res) => {
   });
 });
 
+const queryapp = "SELECT name" + " FROM t_app";
+// Route to get all posts
+app.get("/api/getapplist", (req, res) => {
+  const id = req.params.id;
+  db.query(queryapp, id, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    res.send(result);
+  });
+});
+
 app.get("/api/getusers", (req, res) => {
   db.query(
     `SELECT user.id, user.email as input, user.password as psw, ` +
@@ -107,6 +119,28 @@ app.get("/api/deleteuser/:id", (req, res) => {
   });
 });
 
+app.get("/api/deleterole/:id", (req, res) => {
+  const id = req.params.id;
+  db.query("DELETE FROM t_roles WHERE id = ? ", [id], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    db.query(
+      "DELETE FROM t_users_roles_link WHERE id_role = ? ",
+      [id],
+      (err, result) => {
+        db.query(
+          "DELETE FROM t_roles_app_link WHERE id_role = ? ",
+          [id],
+          (err, result) => {
+            res.send(result);
+          }
+        );
+      }
+    );
+  });
+});
+
 app.get("/api/createuser/:id~:email~:psw~:arrayroles", (req, res) => {
   const id = req.params.id;
   const email = req.params.email;
@@ -128,6 +162,39 @@ app.get("/api/createuser/:id~:email~:psw~:arrayroles", (req, res) => {
         db.query(
           "INSERT INTO t_users_roles_link (`id_user`, `id_role`)" +
             " VALUES (?, (SELECT id FROM t_roles WHERE name = ? ) )",
+          [id, array[i]],
+          (err, result) => {
+            if (err) {
+              console.log(err.sqlMessage);
+              console.log(err.sql);
+            }
+          }
+        );
+      }
+    }
+  );
+});
+
+app.get("/api/createrole/:id~:email~:arrayroles", (req, res) => {
+  const id = req.params.id;
+  const email = req.params.email;
+  var array = req.params.arrayroles.split(",");
+  for (var j = 0; j < array.length; j++) {
+    array[j] = array[j].replace(/['"]+/g, "").trim();
+    array[j] = array[j].replace(/['[]+/g, "").trim();
+    array[j] = array[j].replace(/(])+/g, "").trim();
+  }
+  db.query(
+    "INSERT INTO t_roles (`id`, `name`) VALUES (?, ?)",
+    [id, email],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      for (var i = 0; i < array.length; i++) {
+        db.query(
+          "INSERT INTO t_roles_app_link (`id_role`, `id_app`)" +
+            " VALUES (?, (SELECT id FROM t_app WHERE name = ? ) )",
           [id, array[i]],
           (err, result) => {
             if (err) {
@@ -187,28 +254,56 @@ app.get("/api/edituser/:id~:email~:psw~:arrayroles", (req, res) => {
   });
 });
 
-/*app.get("/api/createlink_user/:id~:arrayroles", (req, res) => {
+app.get("/api/editrole/:id~:email~:arrayroles", (req, res) => {
   const id = req.params.id;
+  const email = req.params.email;
   var array = req.params.arrayroles.split(",");
   for (var j = 0; j < array.length; j++) {
     array[j] = array[j].replace(/['"]+/g, "").trim();
     array[j] = array[j].replace(/['[]+/g, "").trim();
     array[j] = array[j].replace(/(])+/g, "").trim();
   }
-  for (var i = 0; i < array.length; i++) {
+
+  db.query("DELETE FROM t_roles WHERE id = ? ", [id], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
     db.query(
-      "INSERT INTO t_users_roles_link (`id_user`, `id_role`)" +
-        " VALUES (?, (SELECT id FROM t_roles WHERE name = ? ) )",
-      [id, array[i]],
+      "DELETE FROM t_users_roles_link WHERE id_role = ? ",
+      [id],
       (err, result) => {
-        if (err) {
-          console.log(err.sqlMessage);
-          console.log(err.sql);
-        }
+        db.query(
+          "DELETE FROM t_roles_app_link WHERE id_role = ? ",
+          [id],
+          (err, result) => {
+            db.query(
+              "INSERT INTO t_roles (`id`, `name`) VALUES (?, ?)",
+              [id, email],
+              (err, result) => {
+                if (err) {
+                  console.log(err);
+                }
+                for (var i = 0; i < array.length; i++) {
+                  db.query(
+                    "INSERT INTO t_roles_app_link (`id_user`, `id_role`)" +
+                      " VALUES (?, (SELECT id FROM t_app WHERE name = ? ) )",
+                    [id, array[i]],
+                    (err, result) => {
+                      if (err) {
+                        console.log(err.sqlMessage);
+                        console.log(err.sql);
+                      }
+                    }
+                  );
+                }
+              }
+            );
+          }
+        );
       }
     );
-  }
-});*/
+  });
+});
 
 app.get("/", (req, res) => {
   var text = "Backend Timesheet: <p>/api/getdata</p>";
@@ -216,9 +311,13 @@ app.get("/", (req, res) => {
   text += "<p>/api/getusers</p>";
   text += "<p>/api/getroles</p>";
   text += "<p>/api/getroleslist</p>";
+  text += "<p>/api/getapplist</p>";
   text += "<p>/api/deleteuser/:id</p>";
+  text += "<p>/api/deleterole/:id</p>";
   text += '<p>/api/createuser/:id~:email~:psw~["Ruolo1","Ruolo3"]</p>';
+  text += "<p>/api/createrole/:id~:email~:arrayroles</p>";
   text += '<p>/api/edituser/:id~:email~:psw~["Ruolo1","Ruolo3"]</p>';
+  text += "<p>/api/editrole/:id~:email~:arrayroles</p>";
   //text += '<p>/api/createlink_user/:id~["Ruolo1","Ruolo3"]';
   res.send(text);
 });
