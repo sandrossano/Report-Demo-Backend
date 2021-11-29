@@ -129,6 +129,52 @@ app.get("/api/createuser/:id~:email~:psw~:arrayroles", (req, res) => {
   );
 });
 
+app.get("/api/edituser/:id~:email~:psw~:arrayroles", (req, res) => {
+  const id = req.params.id;
+  const email = req.params.email;
+  const psw = req.params.psw;
+  var array = req.params.arrayroles.split(",");
+  for (var j = 0; j < array.length; j++) {
+    array[j] = array[j].replace(/['"]+/g, "").trim();
+    array[j] = array[j].replace(/['[]+/g, "").trim();
+    array[j] = array[j].replace(/(])+/g, "").trim();
+  }
+
+  db.query("DELETE FROM t_users WHERE id = ? ", [id], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    db.query(
+      "DELETE FROM t_users_roles_link WHERE id_user = ? ",
+      [id],
+      (err, result) => {
+        db.query(
+          "INSERT INTO t_users (`id`, `email`, `password`) VALUES (?, ?, ?)",
+          [id, email, psw],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            }
+            for (var i = 0; i < array.length; i++) {
+              db.query(
+                "INSERT INTO t_users_roles_link (`id_user`, `id_role`)" +
+                  " VALUES (?, (SELECT id FROM t_roles WHERE name = ? ) )",
+                [id, array[i]],
+                (err, result) => {
+                  if (err) {
+                    console.log(err.sqlMessage);
+                    console.log(err.sql);
+                  }
+                }
+              );
+            }
+          }
+        );
+      }
+    );
+  });
+});
+
 /*app.get("/api/createlink_user/:id~:arrayroles", (req, res) => {
   const id = req.params.id;
   var array = req.params.arrayroles.split(",");
