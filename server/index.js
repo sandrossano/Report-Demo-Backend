@@ -79,11 +79,68 @@ app.get("/api/login/:id~:psw", (req, res) => {
   );
 });
 
+app.get("/api/deleteuser/:id", (req, res) => {
+  const id = req.params.id;
+  db.query("DELETE FROM t_users WHERE id = ? ", [id], (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    db.query(
+      "DELETE FROM t_users_roles_link WHERE id_user = ? ",
+      [id],
+      (err, result) => {
+        res.send(result);
+      }
+    );
+  });
+});
+
+app.get("/api/createuser/:id~:email~:psw", (req, res) => {
+  const id = req.params.id;
+  const email = req.params.email;
+  const psw = req.params.psw;
+  db.query(
+    "INSERT INTO t_users (`id`, `email`, `password`) VALUES (?, ?, ?)",
+    [id, email, psw],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+    }
+  );
+});
+
+app.get("/api/createlink_user/:id~:arrayroles", (req, res) => {
+  const id = req.params.id;
+  var array = req.params.arrayroles.split('","');
+  for (var j = 0; j < array.length; j++) {
+    array[j] = array[j].replace(/['"]+/g, "");
+    array[j] = array[j].replace(/['[]+/g, "");
+    array[j] = array[j].replace(/(])+/g, "");
+  }
+  for (var i = 0; i < array.length; i++) {
+    db.query(
+      "INSERT INTO t_users_roles_link (`id_user`, `id_role`)" +
+        " VALUES (?, (SELECT id FROM t_roles WHERE name = ? ) )",
+      [id, array[i]],
+      (err, result) => {
+        if (err) {
+          console.log(err.sqlMessage);
+          console.log(err.sql);
+        }
+      }
+    );
+  }
+});
+
 app.get("/", (req, res) => {
   var text = "Backend Timesheet: <p>/api/getdata</p>";
   text += "<p>/api/login/:id~:psw</p>";
   text += "<p>/api/getusers</p>";
   text += "<p>/api/getroles</p>";
+  text += "<p>/api/deleteuser/:id</p>";
+  text += "<p>/api/createuser/:id~:email~:psw</p>";
+  text += '<p>/api/createlink_user/:id~["Ruolo1","Ruolo3"]';
   res.send(text);
 });
 
