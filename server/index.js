@@ -9,6 +9,7 @@ var fs = require("fs");
 
 app.use(cors());
 app.use(express.json());
+
 const querydata = "SELECT *" + " FROM pika_test";
 // Route to get all posts
 app.get("/api/getdata", (req, res) => {
@@ -21,8 +22,28 @@ app.get("/api/getdata", (req, res) => {
   });
 });
 
+// Route to get one post
+app.get("/api/login/:id~:psw", (req, res) => {
+  const id = req.params.id;
+  const password = crypto
+    .createHash("md5")
+    .update(req.params.psw)
+    .digest("hex");
+  db.query(
+    "SELECT * FROM t_users WHERE email = ? AND password = ? ",
+    [id, password],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    }
+  );
+});
+
 app.get("/", (req, res) => {
-  var text = "Backend Timesheet:" + " <p>/api/getdata</p>";
+  var text = "Backend Timesheet: <p>/api/getdata</p>";
+  text += "<p>/api/login/:id~:psw</p>";
   res.send(text);
 });
 
