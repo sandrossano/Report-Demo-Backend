@@ -24,7 +24,7 @@ app.get("/api/getdata", (req, res) => {
 
 app.get("/api/getusers", (req, res) => {
   db.query(
-    `SELECT user.id, user.email as input, ` +
+    `SELECT user.id, user.email as input, user.password as psw, ` +
       `JSON_ARRAYAGG(roles.name) AS permissionName` +
       " FROM t_users as user " +
       "INNER JOIN t_users_roles_link as link ON link.id_user = user.id " +
