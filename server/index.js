@@ -95,10 +95,16 @@ app.get("/api/deleteuser/:id", (req, res) => {
   });
 });
 
-app.get("/api/createuser/:id~:email~:psw", (req, res) => {
+app.get("/api/createuser/:id~:email~:psw~:arrayroles", (req, res) => {
   const id = req.params.id;
   const email = req.params.email;
   const psw = req.params.psw;
+  var array = req.params.arrayroles.split(",");
+  for (var j = 0; j < array.length; j++) {
+    array[j] = array[j].replace(/['"]+/g, "").trim();
+    array[j] = array[j].replace(/['[]+/g, "").trim();
+    array[j] = array[j].replace(/(])+/g, "").trim();
+  }
   db.query(
     "INSERT INTO t_users (`id`, `email`, `password`) VALUES (?, ?, ?)",
     [id, email, psw],
@@ -106,11 +112,24 @@ app.get("/api/createuser/:id~:email~:psw", (req, res) => {
       if (err) {
         console.log(err);
       }
+      for (var i = 0; i < array.length; i++) {
+        db.query(
+          "INSERT INTO t_users_roles_link (`id_user`, `id_role`)" +
+            " VALUES (?, (SELECT id FROM t_roles WHERE name = ? ) )",
+          [id, array[i]],
+          (err, result) => {
+            if (err) {
+              console.log(err.sqlMessage);
+              console.log(err.sql);
+            }
+          }
+        );
+      }
     }
   );
 });
 
-app.get("/api/createlink_user/:id~:arrayroles", (req, res) => {
+/*app.get("/api/createlink_user/:id~:arrayroles", (req, res) => {
   const id = req.params.id;
   var array = req.params.arrayroles.split(",");
   for (var j = 0; j < array.length; j++) {
@@ -131,7 +150,7 @@ app.get("/api/createlink_user/:id~:arrayroles", (req, res) => {
       }
     );
   }
-});
+});*/
 
 app.get("/", (req, res) => {
   var text = "Backend Timesheet: <p>/api/getdata</p>";
@@ -139,8 +158,8 @@ app.get("/", (req, res) => {
   text += "<p>/api/getusers</p>";
   text += "<p>/api/getroles</p>";
   text += "<p>/api/deleteuser/:id</p>";
-  text += "<p>/api/createuser/:id~:email~:psw</p>";
-  text += '<p>/api/createlink_user/:id~["Ruolo1","Ruolo3"]';
+  text += '<p>/api/createuser/:id~:email~:psw~["Ruolo1","Ruolo3"]</p>';
+  //text += '<p>/api/createlink_user/:id~["Ruolo1","Ruolo3"]';
   res.send(text);
 });
 
