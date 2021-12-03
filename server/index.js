@@ -22,11 +22,11 @@ app.get("/api/getdata", (req, res) => {
   });
 });
 
-const queryvariant = "SELECT *" + " FROM t_variant";
+const queryvariant = "SELECT *" + " FROM t_variant WHERE report = ?";
 // Route to get all posts
-app.get("/api/getvariant", (req, res) => {
-  const id = req.params.id;
-  db.query(queryvariant, id, (err, result) => {
+app.get("/api/getvariant/:report", (req, res) => {
+  const report = req.params.report;
+  db.query(queryvariant, report, (err, result) => {
     if (err) {
       console.log(err);
     }
@@ -337,7 +337,7 @@ app.get("/api/editrole/:id~:email~:arrayroles", (req, res) => {
 
 app.get("/", (req, res) => {
   var text = "Backend Timesheet: <p>/api/getdata</p>";
-  text += "<p>/api/getvariant</p>";
+  text += "<p>/api/getvariant/:report</p>";
   text += "<p>/api/createvariant/:report~:variant~:user~:json</p>";
   text += "<p>/api/login/:id~:psw</p>";
   text += "<p>/api/getusers</p>";
