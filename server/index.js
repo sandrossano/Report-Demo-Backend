@@ -133,6 +133,22 @@ app.get("/api/createvariant/:report~:variant~:user~:json", (req, res) => {
   );
 });
 
+// Route to get one post
+app.get("/api/deletevariant/:report~:variant", (req, res) => {
+  const variant = req.params.variant;
+  const report = req.params.report;
+  db.query(
+    "DELETE FROM t_variant WHERE report = ? AND variant = ?",
+    [report, variant],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    }
+  );
+});
+
 app.get("/api/deleteuser/:id", (req, res) => {
   const id = req.params.id;
   db.query("DELETE FROM t_users WHERE id = ? ", [id], (err, result) => {
@@ -338,6 +354,7 @@ app.get("/api/editrole/:id~:email~:arrayroles", (req, res) => {
 app.get("/", (req, res) => {
   var text = "Backend Timesheet: <p>/api/getdata</p>";
   text += "<p>/api/getvariant/:report</p>";
+  text += "<p>/api/deletevariant/:report~:variant</p>";
   text += "<p>/api/createvariant/:report~:variant~:user~:json</p>";
   text += "<p>/api/login/:id~:psw</p>";
   text += "<p>/api/getusers</p>";
