@@ -122,7 +122,7 @@ app.get("/api/createvariant/:report~:variant~:user~:json", (req, res) => {
   const json = req.params.json;
   const user = req.params.user;
   db.query(
-    "INSERT INTO t_variant (`report`, `variant`, `json`, `user`) VALUES (?, ?, ?, ?)",
+    "INSERT INTO t_variant (`report`, `variant`, `state`, `user`) VALUES (?, ?, ?, ?)",
     [report, variant, json, user],
     (err, result) => {
       if (err) {
