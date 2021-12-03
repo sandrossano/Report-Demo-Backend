@@ -22,6 +22,18 @@ app.get("/api/getdata", (req, res) => {
   });
 });
 
+const queryvariant = "SELECT *" + " FROM t_variant";
+// Route to get all posts
+app.get("/api/getvariant", (req, res) => {
+  const id = req.params.id;
+  db.query(queryvariant, id, (err, result) => {
+    if (err) {
+      console.log(err);
+    }
+    res.send(result);
+  });
+});
+
 const queryroles = "SELECT name" + " FROM t_roles";
 // Route to get all posts
 app.get("/api/getroleslist", (req, res) => {
@@ -94,6 +106,24 @@ app.get("/api/login/:id~:psw", (req, res) => {
   db.query(
     "SELECT * FROM t_users WHERE email = ? AND password = ? ",
     [id, password],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      }
+      res.send(result);
+    }
+  );
+});
+
+// Route to get one post
+app.get("/api/createvariant/:report~:variant~:user~:json", (req, res) => {
+  const variant = req.params.variant;
+  const report = req.params.report;
+  const json = req.params.json;
+  const user = req.params.user;
+  db.query(
+    "INSERT INTO t_variant (`report`, `variant`, `json`, `user`) VALUES (?, ?, ?, ?)",
+    [report, variant, json, user],
     (err, result) => {
       if (err) {
         console.log(err);
@@ -307,6 +337,8 @@ app.get("/api/editrole/:id~:email~:arrayroles", (req, res) => {
 
 app.get("/", (req, res) => {
   var text = "Backend Timesheet: <p>/api/getdata</p>";
+  text += "<p>/api/getvariant</p>";
+  text += "<p>/api/createvariant/:report~:variant~:user~:json</p>";
   text += "<p>/api/login/:id~:psw</p>";
   text += "<p>/api/getusers</p>";
   text += "<p>/api/getroles</p>";
